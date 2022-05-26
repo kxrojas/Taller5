@@ -11,35 +11,53 @@ import java.util.List;
 
 public class NFTService {
 
-    public List<NFT> getNFTS() throws IOException {
+    private Connection conn;
 
-        List<NFT> nfts;
+    public UsersService(Connection conn) {
+        this.conn = conn;
+    }
 
-        try (InputStream is = NFTService.class.getClassLoader().getResourceAsStream("listNFT.csv")){
+    public List<NFT> listNFTS() {
+        // Object for handling SQL statement
+        Statement stmt = null;
 
-            HeaderColumnNameMappingStrategy<NFT> strategy = new HeaderColumnNameMappingStrategy<>();
-            strategy.setType(NFT.class);
+        // Data structure to map results from database
+        List<NFT> nfts = new ArrayList<NFT>();
 
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+        try {
+            // Executing a SQL query
+            System.out.println("=> Lista de piezas de arte...");
+            stmt = conn.createStatement();
 
-                CsvToBean<NFT> csvToBean = new CsvToBeanBuilder<NFT>(br)
-                        .withType(NFT.class)
-                        .withMappingStrategy(strategy)
-                        .withIgnoreLeadingWhiteSpace(true)
-                        .build();
+            String sql = "SELECT title,fcoins,image_url FROM pieceOfArt";
+            ResultSet rs = stmt.executeQuery(sql);
 
-                nfts = csvToBean.parse();
+            // Reading data from result set row by row
+            while (rs.next()) {
+                // Extracting row values by column name
+
+                String title = rs.getString("title");
+                String fcoins = rs.getString("fcoins");
+                String image_url = rs.getString("image_url");
+
+                // Creating a new UserApp class instance and adding it to the array list
+                nfts.add(new NFT(title,fcoins,image_url));
+            }
+
+            // Closing resources
+            rs.close();
+            stmt.close();
+        } catch (SQLException se) {
+            se.printStackTrace(); // Handling errors from database
+        } finally {
+            // Cleaning-up environment
+            try {
+                if (stmt != null) stmt.close();
+            } catch (SQLException se) {
+                se.printStackTrace();
             }
         }
         return nfts;
     }
-
-    public NFT createNFT(String title, String coins, String image_url, String path) throws IOException {
-        String newLine = "\n"+ title +","+ coins +","+ image_url;
-        FileOutputStream os = new FileOutputStream(path +"WEB-INF/classes/" + "listNFT.csv", true);
-        os.write(newLine.getBytes());
-        os.close();
-
-        return new NFT(title, coins, image_url);
-    }
 }
+

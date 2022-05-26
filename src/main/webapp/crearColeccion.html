@@ -20,10 +20,10 @@
         </a>
         <ul class="nav">
             <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="perfilArtista.html">juan_carlos02</a>
+                <a class="nav-link active" aria-current="page" href="perfilArtista.html">username</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" aria-current="page" href="recargarArtista.html">Saldo: 0.0 &#8383</a>
+                <a class="nav-link" aria-current="page" href="recargarArtista.html">Saldo:  &#8383</a>
             </li>
         </ul>
     </nav>
@@ -33,7 +33,7 @@
     <div class="crear-piezas">
         <form id="create-collection">
             <div class="crear-coleccion">
-                <form class="pieces-form">
+                <form id="create-art">
                     <h1 class="titulo">Crear Colección</h1>
                     <input class="cajas" name="title" id="title" type="title" placeholder="Título colección">
                     <input class="cajad" name="description" id="description" type="descripcion" placeholder="Descripción">
@@ -43,6 +43,29 @@
         </form>
     </div>
 </div>
+<script>
+    // Getting form by Id
+    let createUserForm = document.getElementById("create-art");
+    // Triggering event when submit
+    createUserForm.onsubmit = async (e) => {
+        e.preventDefault();
+        var data = {
+            "title": document.getElementById("title").value,
+            "descriptiom": document.getElementById("description").value
+        };
+        // Making the request
+        let response = await fetch("./api/nfts/colections", {
+            method: "POST",
+            headers: {
+                'Content-type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        // Extracting response as text
+        let message = await response.json();
+        alert(message);
+    };
+</script>
 
 
 </body>

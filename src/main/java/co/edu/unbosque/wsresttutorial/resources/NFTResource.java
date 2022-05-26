@@ -23,6 +23,59 @@ public class NFTResource {
     @Context
     ServletContext context;
 
+    static final String JDBC_DRIVER = "org.postgresql.Driver";
+    static final String DB_URL = "jdbc:postgresql://localhost/TiendaVale";
+    static final String USER = "postgres";
+    static final String PASS = "0987";
+
+    @GET
+    @Produces("application/json")
+    public Response listUsers() {
+        Connection conn = null;
+        List<NFT> nfts = null;
+
+        try {
+
+            Class.forName(JDBC_DRIVER);
+            conn = DriverManager.getConnection(DB_URL, USER, PASS);
+
+            NFTService nftService = new NFTService UsersService(conn);
+
+            nfts = nftService.listNft();
+            conn.close();
+
+        } catch (SQLException se) {
+            se.printStackTrace(); //
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace(); //
+        } finally {
+            try {
+                if (conn != null) conn.close();
+            } catch (SQLException se) {
+                se.printStackTrace();
+            }
+        }
+        return Response.ok().entity(nfts).build();
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("./colection")
+    public Response create(NFT nft) {
+        String contextPath = context.getRealPath("") + File.separator;
+
+        try {
+            nft = new NFTService().createNFT(nft.getTitle(), nft.getFcoins(), nft.getImage_url(), contextPath);
+
+            return Response.created(UriBuilder.fromResource(NFTResource.class).path(nft.getTitle()).build())
+                    .entity(nft)
+                    .build();
+        } catch (IOException e){
+            return Response.serverError().build();
+        }
+    }
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response list(){
